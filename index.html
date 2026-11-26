@@ -236,6 +236,7 @@ html.ctAberto{overflow:hidden}
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 {
 const $ = id => document.getElementById(id);
 const t0 = performance.now();
@@ -676,6 +677,278 @@ function adicionarRipas(raiz) {
   grupo.add(ripas);
 }
 
+
+// ---------- 4 prateleiras flutuantes nos lados da janela, com plantas, livros e jarras (26/11) ----------
+function conjunto(raiz, nomes) {          // clona objetos do quarto num grupo com a base ao centro na origem
+  const orig = nomes.map(n => raiz.getObjectByName(n)).filter(Boolean);
+  if (!orig.length) return null;
+  const cx = new THREE.Box3(); orig.forEach(o => cx.expandByObject(o));
+  const c = cx.getCenter(new THREE.Vector3());
+  const g = new THREE.Group();
+  orig.forEach(o => {
+    const k = o.clone(true);
+    o.updateWorldMatrix(true, false);
+    o.matrixWorld.decompose(k.position, k.quaternion, k.scale);
+    k.position.sub(new THREE.Vector3(c.x, cx.min.y, c.z));
+    g.add(k);
+  });
+  return g;
+}
+function jarra(perfil, cor, rug = 0.85) {    // jarra de cerâmica por revolução de um perfil [raio, altura] em metros
+  const pts = perfil.map(([r, y]) => new THREE.Vector2(r, y));
+  const m = new THREE.Mesh(new THREE.LatheGeometry(pts, 40), new THREE.MeshStandardMaterial({ color: cor, roughness: rug, side: THREE.DoubleSide }));
+  return m;
+}
+function adicionarPrateleiras(raiz) {
+  const Z = -3.5 + 0.021;                     // à frente das ripas
+  const FUNDO = 0.17, ESP = 0.03;
+  const NIVEIS = [1.27, 1.77];
+  const LADOS = [[-1.62, -1.08], [1.08, 1.62]];
+  const madeira = new THREE.MeshStandardMaterial({ color: 0x161514, roughness: 0.55, metalness: 0.1 });   // prateleiras pretas mate
+  const grupo = new THREE.Group(); grupo.name = 'Prateleiras'; raiz.add(grupo);
+  const prat = {};
+  LADOS.forEach(([a, b], li) => NIVEIS.forEach((y, ni) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(b - a, ESP, FUNDO), madeira);
+    m.position.set((a + b) / 2, y - ESP / 2, Z + FUNDO / 2);
+    grupo.add(m);
+    prat[li + '' + ni] = { x0: a, x1: b, y, z: Z + FUNDO / 2 };
+  }));
+  const pousar = (obj, p, fx, s = 1, rotY = 0) => {
+    if (!obj) return; obj.scale.multiplyScalar(s); obj.rotation.y = rotY;
+    obj.position.set(p.x0 + (p.x1 - p.x0) * fx, p.y, p.z); grupo.add(obj);
+  };
+  const planta = () => conjunto(raiz, ['Vaso_Vime', 'Vaso_Vime_Borda', 'Vaso_Terra', 'potted_plant_02_leaves']);
+  const livros = n => conjunto(raiz, n);
+  const branco = 0xe9e3d8, terracota = 0xa4583a, preto = 0x1d1b1a, salvia = 0x8b9a82;
+  // esquerda, em cima: planta + jarra alta branca
+  pousar(planta(), prat['01'], 0.3, 0.55);
+  pousar(jarra([[0, 0], [0.04, 0], [0.05, 0.05], [0.035, 0.14], [0.018, 0.2], [0.022, 0.22], [0.018, 0.22]], branco), prat['01'], 0.78);
+  // esquerda, em baixo: livros ao alto, de lombada para o quarto, e uma taça baixa
+  pousar(livros(['Livro_1', 'Livro_1_Faixa_1', 'Livro_1_Faixa_2', 'Livro_1_Paginas', 'Livro_2', 'Livro_2_Faixa_1', 'Livro_2_Faixa_2', 'Livro_2_Paginas', 'Livro_3', 'Livro_3_Paginas', 'Livro_4', 'Livro_4_Faixa_1', 'Livro_4_Faixa_2', 'Livro_4_Paginas']), prat['00'], 0.3, 0.82, -Math.PI / 2);
+  pousar(jarra([[0, 0], [0.035, 0], [0.06, 0.03], [0.065, 0.05], [0.06, 0.052]], terracota, 0.7), prat['00'], 0.76);
+  // direita, em cima: planta + duas jarras pequenas
+  pousar(planta(), prat['11'], 0.66, 0.5, 1.3);
+  pousar(jarra([[0, 0], [0.03, 0], [0.045, 0.06], [0.03, 0.11], [0.015, 0.13], [0.017, 0.14], [0.013, 0.14]], preto, 0.5), prat['11'], 0.18);
+  pousar(jarra([[0, 0], [0.025, 0], [0.035, 0.04], [0.022, 0.08], [0.024, 0.085], [0.02, 0.085]], salvia), prat['11'], 0.33);
+  // direita, em baixo: livros deitados com uma plantinha em cima
+  const pilha = livros(['Livro_Deitado_1', 'Livro_Deitado_2', 'Livro_Deitado_3']);
+  pousar(pilha, prat['10'], 0.68, 1, -Math.PI / 2);
+  if (pilha) { const pl = planta(); const p = prat['10']; if (pl) { pl.scale.multiplyScalar(0.32); pl.position.set(p.x0 + (p.x1 - p.x0) * 0.68, p.y + 0.08, p.z); grupo.add(pl); } }
+}
+
+// ---------- módulos de gavetas da secretária: um de cada lado, módulo preto + gavetas carvalho (26/11) ----------
+const GAV = { frentes: null, corpo: null, carvalho: null, nogueira: null };
+const OPC_GAV = [
+  { nome: 'Corpo preto + frentes carvalho', corpo: { cor: 0x161514, rug: 0.6 }, frentes: { tex: 'carvalho' } }   // escolhido a 26/11
+];
+function prepararGavetas(raiz) {
+  const base = raiz.getObjectByName('Gaveta_1_q')?.material;
+  if (!base) return;
+  GAV.frentes = base.clone(); GAV.corpo = base.clone();
+  // módulo de gavetas também do lado direito: cópia em espelho do da esquerda (substitui o painel lateral)
+  const dir = new THREE.Group(); dir.scale.x = -1; raiz.add(dir);
+  ['Gavetas_Corpo', 'Gaveta_1', 'Gaveta_2', 'Gaveta_3', 'Gaveta_4', 'Gaveta_5'].forEach(n => {
+    const o = raiz.getObjectByName(n); if (!o) return;
+    const k = o.clone(true); o.updateWorldMatrix(true, false); o.matrixWorld.decompose(k.position, k.quaternion, k.scale);
+    dir.add(k);
+  });
+  const painel = raiz.getObjectByName('Secretaria_Painel_D'); if (painel) painel.visible = false;
+  raiz.traverse(o => {
+    if (!o.isMesh) return;
+    if (/^Gaveta_\d_q$/.test(o.name)) o.material = GAV.frentes;
+    else if (o.name === 'Gavetas_Corpo_q' || o.name === 'Secretaria_Painel_D_q') o.material = GAV.corpo;
+    else if (o.name === 'Secretaria_Tampo_q') GAV.carvalho = o.material;
+  });
+  GAV.nogueira = texturaNogueira();
+}
+function pintar(m, o) {
+  if (o.tex === 'carvalho' && GAV.carvalho) { m.map = GAV.carvalho.map; m.color.copy(GAV.carvalho.color); m.roughness = GAV.carvalho.roughness; }
+  else if (o.tex === 'nogueira') { m.map = GAV.nogueira; m.color.setHex(0xffffff); m.roughness = 0.6; }
+  else { m.map = null; m.color.setHex(o.cor); m.roughness = o.rug; }
+  m.metalness = 0; m.needsUpdate = true;
+}
+function aplicarGavetas(i) {
+  if (!GAV.frentes) return;
+  pintar(GAV.corpo, OPC_GAV[i].corpo); pintar(GAV.frentes, OPC_GAV[i].frentes);
+}
+
+// ---------- cadernos abertos e caneta na secretária, à frente do monitor da esquerda (26/11) ----------
+function texturaPaginas() {
+  const W = 1024, H = 720, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  x.fillStyle = '#f3ecdd'; x.fillRect(0, 0, W, H);
+  const sombra = x.createLinearGradient(W / 2 - 60, 0, W / 2 + 60, 0);          // sombra junto à lombada
+  sombra.addColorStop(0, 'rgba(0,0,0,0)'); sombra.addColorStop(.5, 'rgba(60,45,30,.28)'); sombra.addColorStop(1, 'rgba(0,0,0,0)');
+  x.fillStyle = sombra; x.fillRect(W / 2 - 60, 0, 120, H);
+  x.strokeStyle = 'rgba(120,150,190,.35)'; x.lineWidth = 1.5;                    // linhas pautadas
+  for (let y = 70; y < H - 30; y += 26) { x.beginPath(); x.moveTo(30, y); x.lineTo(W / 2 - 24, y); x.moveTo(W / 2 + 24, y); x.lineTo(W - 30, y); x.stroke(); }
+  x.strokeStyle = 'rgba(200,90,90,.35)'; x.beginPath(); x.moveTo(78, 20); x.lineTo(78, H - 20); x.stroke();
+  let sem = 5; const rnd = () => (sem = (sem * 16807) % 2147483647) / 2147483647;
+  const rabisco = (x0, y, larg) => {                                              // "escrita" à mão, ilegível
+    x.beginPath(); let px = x0; x.moveTo(px, y);
+    while (px < x0 + larg) { const p = 6 + rnd() * 10; x.quadraticCurveTo(px + p / 2, y - 6 - rnd() * 8, px + p, y + (rnd() - .5) * 3); px += p; if (rnd() < .12) { px += 10; x.moveTo(px, y); } }
+    x.stroke();
+  };
+  x.strokeStyle = 'rgba(30,45,110,.8)'; x.lineWidth = 2.2; x.lineCap = 'round';
+  rabisco(92, 62, 180);                                                          // título
+  for (let y = 96; y < H - 60; y += 26) if (rnd() > .15) rabisco(92 + (rnd() < .2 ? 20 : 0), y + 18, 130 + rnd() * 270);
+  // página da direita: esboço de uma curva de potência e umas notas
+  const ox = W / 2 + 80, oy = 380, gw = 330, gh = 250;
+  x.strokeStyle = 'rgba(30,30,40,.85)'; x.lineWidth = 2;
+  x.beginPath(); x.moveTo(ox, oy - gh); x.lineTo(ox, oy); x.lineTo(ox + gw, oy); x.stroke();
+  x.strokeStyle = 'rgba(30,45,110,.9)'; x.lineWidth = 3; x.beginPath();
+  for (let i = 0; i <= 60; i++) { const v = i / 60, p = v < .15 ? 0 : v > .62 ? 1 : 1 / (1 + Math.exp(-12 * (v - .4))); const px = ox + v * gw, py = oy - p * (gh - 30); i ? x.lineTo(px, py) : x.moveTo(px, py); }
+  x.stroke();
+  x.fillStyle = 'rgba(200,70,40,.85)'; for (let i = 0; i < 18; i++) { const v = .2 + rnd() * .6, p = 1 / (1 + Math.exp(-12 * (v - .4))); x.beginPath(); x.arc(ox + v * gw, oy - p * (gh - 30) + (rnd() - .5) * 26, 3, 0, 7); x.fill(); }
+  x.strokeStyle = 'rgba(30,45,110,.8)'; x.lineWidth = 2.2;
+  rabisco(ox, oy - gh - 26, 150);
+  for (let y = oy + 60; y < H - 50; y += 26) rabisco(W / 2 + 60, y, 120 + rnd() * 240);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+  return t;
+}
+function adicionarCadernos(raiz) {
+  const Y = 0.75;                                       // tampo da secretária
+  const grupo = new THREE.Group(); grupo.name = 'Cadernos'; raiz.add(grupo);
+  // caderno fechado por baixo (capa verde-escura), ligeiramente rodado
+  const fechado = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.012, 0.21), new THREE.MeshStandardMaterial({ color: 0x2f3b33, roughness: 0.8 }));
+  fechado.position.set(-1.02, Y + 0.006, -3.03); fechado.rotation.y = 0.32; grupo.add(fechado);
+  // caderno aberto: capa + duas páginas ligeiramente arqueadas a partir da lombada
+  const W = 0.30, D = 0.21;
+  const aberto = new THREE.Group(); aberto.position.set(-0.72, Y, -3.02); aberto.rotation.y = -0.12; grupo.add(aberto);
+  const capa = new THREE.Mesh(new THREE.BoxGeometry(W + 0.01, 0.003, D + 0.008), new THREE.MeshStandardMaterial({ color: 0x1c1c1e, roughness: 0.7 }));
+  capa.position.y = 0.0015; aberto.add(capa);
+  const geo = new THREE.PlaneGeometry(W, D, 40, 1); geo.rotateX(-Math.PI / 2);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) { const u = Math.abs(pos.getX(i)) / (W / 2); pos.setY(i, 0.009 * Math.sin(Math.min(u * 1.6, 1) * Math.PI / 2) - 0.002 * u); }
+  geo.computeVertexNormals();
+  const folhas = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: texturaPaginas(), roughness: 0.92 }));
+  folhas.position.y = 0.004; aberto.add(folhas);
+  const bloco = new THREE.Mesh(new THREE.BoxGeometry(W - 0.004, 0.006, D - 0.004), new THREE.MeshStandardMaterial({ color: 0xe9e1d0, roughness: 0.95 }));
+  bloco.position.y = 0.004; aberto.add(bloco);                                   // espessura das folhas, por baixo
+  // caneta preta com clip e ponta metálica, pousada ao lado
+  const caneta = new THREE.Group();
+  const preto = new THREE.MeshStandardMaterial({ color: 0x111113, roughness: 0.35, metalness: 0.2 });
+  const metal = new THREE.MeshStandardMaterial({ color: 0xc9c6c0, roughness: 0.25, metalness: 0.9 });
+  const corpo = new THREE.Mesh(new THREE.CylinderGeometry(0.0048, 0.0048, 0.125, 20), preto); caneta.add(corpo);
+  const ponta = new THREE.Mesh(new THREE.ConeGeometry(0.0048, 0.016, 20), metal); ponta.position.y = -0.0705; ponta.rotation.x = Math.PI; caneta.add(ponta);
+  const topo = new THREE.Mesh(new THREE.CylinderGeometry(0.0049, 0.0049, 0.008, 20), metal); topo.position.y = 0.064; caneta.add(topo);
+  const clip = new THREE.Mesh(new THREE.BoxGeometry(0.0025, 0.045, 0.0015), metal); clip.position.set(0, 0.043, 0.0058); caneta.add(clip);
+  caneta.rotation.set(0, 0, Math.PI / 2); caneta.rotateX(0.5);
+  const cg = new THREE.Group(); cg.add(caneta); cg.position.set(-0.49, Y + 0.005, -2.99); cg.rotation.y = 0.6; grupo.add(cg);
+}
+
+// ---------- teclado, rato, colunas e tapete mais realistas, no lugar dos blocos simples (26/11) ----------
+function texturaTapete() {
+  const W = 1024, H = 452, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  x.fillStyle = '#26262a'; x.fillRect(0, 0, W, H);
+  const img = x.getImageData(0, 0, W, H), d = img.data;              // feltro: grão fino
+  for (let i = 0; i < d.length; i += 4) { const n = (Math.random() - .5) * 18; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
+  x.putImageData(img, 0, 0);
+  x.strokeStyle = 'rgba(120,120,128,.55)'; x.lineWidth = 2; x.setLineDash([7, 6]);   // costura a toda a volta
+  x.beginPath(); x.roundRect(12, 12, W - 24, H - 24, 22); x.stroke();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+  return t;
+}
+function adicionarPerifericos(raiz) {
+  const Y = 0.75;
+  ['Teclado', 'Rato', 'Coluna_E', 'Coluna_D', 'Tapete_Rato'].forEach(n => { const o = raiz.getObjectByName(n); if (o) o.visible = false; });
+  const grupo = new THREE.Group(); grupo.name = 'Perifericos'; raiz.add(grupo);
+
+  // tapete de feltro com cantos arredondados e costura
+  const TW = 0.95, TD = 0.42, r = 0.02, sh = new THREE.Shape();
+  sh.moveTo(-TW / 2 + r, -TD / 2); sh.lineTo(TW / 2 - r, -TD / 2); sh.quadraticCurveTo(TW / 2, -TD / 2, TW / 2, -TD / 2 + r);
+  sh.lineTo(TW / 2, TD / 2 - r); sh.quadraticCurveTo(TW / 2, TD / 2, TW / 2 - r, TD / 2); sh.lineTo(-TW / 2 + r, TD / 2);
+  sh.quadraticCurveTo(-TW / 2, TD / 2, -TW / 2, TD / 2 - r); sh.lineTo(-TW / 2, -TD / 2 + r); sh.quadraticCurveTo(-TW / 2, -TD / 2, -TW / 2 + r, -TD / 2);
+  const tg = new THREE.ExtrudeGeometry(sh, { depth: 0.003, bevelEnabled: false, curveSegments: 6 });
+  const uv = tg.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / TW + .5, uv.getY(i) / TD + .5);
+  tg.rotateX(-Math.PI / 2);
+  const tapete = new THREE.Mesh(tg, new THREE.MeshStandardMaterial({ map: texturaTapete(), roughness: 0.98 }));
+  tapete.position.set(0.30, Y, -3.05); grupo.add(tapete);
+
+  // teclado 75%: caixa de alumínio cinzento-sideral e teclas em instâncias
+  const U = 0.019, LINHAS = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1],
+    [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5, 1],
+    [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.25, 1],
+    [2.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.75, 1, 1],
+    [1.25, 1.25, 1.25, 6.25, 1, 1, 1, 1, 1, 1]
+  ];
+  const teclado = new THREE.Group(); teclado.position.set(0.15, Y + 0.003, -3.0); teclado.rotation.y = -0.03; grupo.add(teclado);
+  const KW = 16 * U + 0.018, KD = 6 * U + 0.022;
+  const caixa = new THREE.Mesh(new RoundedBoxGeometry(KW, 0.02, KD, 3, 0.006),
+    new THREE.MeshStandardMaterial({ color: 0x4a4b50, roughness: 0.38, metalness: 0.75 }));
+  caixa.position.y = 0.01; caixa.rotation.x = 0.045; teclado.add(caixa);
+  const placa = new THREE.Mesh(new THREE.BoxGeometry(16 * U + 0.002, 0.002, 6 * U + 0.002), new THREE.MeshStandardMaterial({ color: 0x151517, roughness: 0.8 }));
+  placa.position.y = 0.0205; placa.rotation.x = 0.045; teclado.add(placa);
+  const teclas = []; LINHAS.forEach((l, ri) => { let x = 0; l.forEach((w, ki) => { teclas.push({ ri, ki, x: x + w / 2, w, n: l.length }); x += w; }); });
+  const corTecla = k => {
+    if ((k.ri === 0 && k.ki === 0) || (k.ri === 3 && k.ki === 12)) return 0xff8a3d;        // Esc e Enter no laranja do site
+    if (k.w > 1 && !(k.ri === 5 && k.w > 6)) return 0x55565c;                             // modificadoras um tom acima
+    if (k.ri === 5 && k.ki >= 7) return 0x55565c;                                         // setas
+    if ((k.ri === 4 && k.ki === 12) || k.ri === 0 && k.ki === 15) return 0x55565c;
+    return 0x2c2d31;
+  };
+  const kg = new RoundedBoxGeometry(1, 1, 1, 2, 0.12);
+  const km = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.55 });
+  const inst = new THREE.InstancedMesh(kg, km, teclas.length);
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.045 + (0), 0, 0)), cor = new THREE.Color();
+  teclas.forEach((k, i) => {
+    const px = -8 * U + k.x * U, pz = -3 * U + (k.ri + 0.5) * U + (k.ri === 0 ? -0.003 : 0);
+    const alt = 0.0085 - (k.ri === 0 ? 0.0012 : 0), py = 0.021 + alt / 2 - pz * Math.tan(0.045);
+    m4.compose(new THREE.Vector3(px, py, pz), q, new THREE.Vector3(k.w * U - 0.0022, alt, U - 0.0022));
+    inst.setMatrixAt(i, m4); inst.setColorAt(i, cor.setHex(corTecla(k)));
+  });
+  inst.instanceMatrix.needsUpdate = true; inst.instanceColor.needsUpdate = true; teclado.add(inst);
+
+  // rato: corpo em forma de gota, botões separados, roda em borracha
+  const rato = new THREE.Group(); rato.position.set(0.68, Y + 0.003, -2.98); rato.rotation.y = -0.12; grupo.add(rato);
+  const rg = new THREE.SphereGeometry(1, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2);
+  const rp = rg.attributes.position;
+  for (let i = 0; i < rp.count; i++) {
+    let x = rp.getX(i), y = rp.getY(i), z = rp.getZ(i);
+    const larg = 0.031 * (1 - 0.18 * Math.max(0, -z));                   // mais estreito à frente (z negativo)
+    const alt = 0.036 * (1 - 0.35 * Math.max(0, -z) ** 2) * (z > 0 ? 1 - 0.25 * z * z : 1);
+    rp.setXYZ(i, x * larg, y * alt, z * 0.06);
+  }
+  rg.computeVertexNormals();
+  const corpoR = new THREE.Mesh(rg, new THREE.MeshStandardMaterial({ color: 0x1a1a1c, roughness: 0.42, metalness: 0.15 }));
+  rato.add(corpoR);
+  const fenda = new THREE.Mesh(new THREE.BoxGeometry(0.0012, 0.004, 0.05), new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 1 }));
+  fenda.position.set(0, 0.031, -0.03); fenda.rotation.x = -0.32; rato.add(fenda);
+  const roda = new THREE.Mesh(new THREE.CylinderGeometry(0.0055, 0.0055, 0.006, 20), new THREE.MeshStandardMaterial({ color: 0x3a3a3e, roughness: 0.9 }));
+  roda.rotation.z = Math.PI / 2; roda.position.set(0, 0.033, -0.027); rato.add(roda);
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 0.003, 40), new THREE.MeshStandardMaterial({ color: 0x0c0c0d, roughness: 0.6 }));
+  base.scale.set(0.029, 1, 0.056); base.position.y = 0.0005; rato.add(base);
+
+  // colunas de estúdio: caixa preta mate, woofer com cone e suspensão, tweeter em cúpula, LED
+  const coluna = (x, rot) => {
+    const g = new THREE.Group(); g.position.set(x, Y, -3.31); g.rotation.y = rot; grupo.add(g);
+    const W = 0.10, H = 0.16, D = 0.12;
+    const corpo = new THREE.Mesh(new RoundedBoxGeometry(W, H, D, 3, 0.008), new THREE.MeshStandardMaterial({ color: 0x18181a, roughness: 0.7 }));
+    corpo.position.y = H / 2 + 0.004; g.add(corpo);
+    const pes = new THREE.Mesh(new THREE.BoxGeometry(W - 0.01, 0.004, D - 0.01), new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 1 }));
+    pes.position.y = 0.002; g.add(pes);
+    const frente = D / 2 + 0.004;
+    const anel = new THREE.Mesh(new THREE.TorusGeometry(0.034, 0.004, 12, 48), new THREE.MeshStandardMaterial({ color: 0x2a2a2d, roughness: 0.5, metalness: 0.4 }));
+    anel.position.set(0, 0.058, frente - 0.002); g.add(anel);
+    const cone = new THREE.Mesh(new THREE.LatheGeometry([[0.004, -0.01], [0.012, -0.009], [0.031, 0]].map(([r, y]) => new THREE.Vector2(r, y)), 40),
+      new THREE.MeshStandardMaterial({ color: 0x1e1e21, roughness: 0.85, side: THREE.DoubleSide }));
+    cone.rotation.x = Math.PI / 2; cone.position.set(0, 0.058, frente - 0.002); g.add(cone);
+    const tampa = new THREE.Mesh(new THREE.SphereGeometry(0.009, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x2b2b2e, roughness: 0.4 }));
+    tampa.rotation.x = Math.PI / 2; tampa.scale.y = 0.5; tampa.position.set(0, 0.058, frente - 0.011); g.add(tampa);
+    const tw = new THREE.Mesh(new THREE.SphereGeometry(0.011, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x9a9aa0, roughness: 0.25, metalness: 0.8 }));
+    tw.rotation.x = Math.PI / 2; tw.scale.y = 0.55; tw.position.set(0, 0.128, frente - 0.001); g.add(tw);
+    const twAnel = new THREE.Mesh(new THREE.TorusGeometry(0.016, 0.0025, 10, 40), new THREE.MeshStandardMaterial({ color: 0x2a2a2d, roughness: 0.5, metalness: 0.4 }));
+    twAnel.position.set(0, 0.128, frente - 0.001); g.add(twAnel);
+    const led = new THREE.Mesh(new THREE.SphereGeometry(0.0017, 10, 8), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 2.5 }));
+    led.position.set(0.034, 0.018, frente - 0.001); g.add(led);
+  };
+  coluna(-0.27, 0.18);
+  coluna(0.58, -0.18);
+}
+
 function prepararQuarto(raiz) {
   raiz.updateMatrixWorld(true);
   raiz.traverse(o => {           // paredes e teto do quarto em greige quente (26/11), combinam com as ripas de nogueira
@@ -1006,7 +1279,7 @@ async function iniciar() {
   });
   const tDown = performance.now() - t0;
   const gq = await parse(abQ);
-  prepararQuarto(gq.scene); adicionarRipas(gq.scene);
+  prepararQuarto(gq.scene); adicionarRipas(gq.scene); adicionarPrateleiras(gq.scene); prepararGavetas(gq.scene); aplicarGavetas(0); adicionarCadernos(gq.scene); adicionarPerifericos(gq.scene);
   cenaQ.add(gq.scene); triQ = contarTri(gq.scene);
   renderer.compile(cenaQ, camera);
   quartoPronto = true;
