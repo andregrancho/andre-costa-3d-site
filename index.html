@@ -609,8 +609,78 @@ function anguloPorta(frame) {
   const t = THREE.MathUtils.clamp((frame - 25) / 21, 0, 1);
   return ABERTA * t * t * (3 - 2 * t);
 }
+// ---------- ripas de nogueira na parede da janela (atrás da secretária), feitas no site (26/11) ----------
+function texturaNogueira(c0 = '#5a3d2b', c1 = '#6b4a34', c2 = '#58402e', escuro = '30,18,10', claro = '150,110,80') {
+  const W = 256, H = 2048, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, W, 0);
+  g.addColorStop(0, c0); g.addColorStop(.5, c1); g.addColorStop(1, c2);
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  let sem = 7; const rnd = () => (sem = (sem * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 260; i++) {                       // veios ao comprido, ligeiramente ondulados
+    const x0 = rnd() * W, larg = 0.6 + rnd() * 2.2, esc = rnd() < 0.5;
+    x.strokeStyle = esc ? `rgba(${escuro},${0.10 + rnd() * 0.22})` : `rgba(${claro},${0.05 + rnd() * 0.12})`;
+    x.lineWidth = larg; x.beginPath();
+    const amp = 2 + rnd() * 6, fr = 0.002 + rnd() * 0.004, fase = rnd() * 6.28;
+    for (let y = 0; y <= H; y += 16) { const xx = x0 + Math.sin(y * fr + fase) * amp; y ? x.lineTo(xx, y) : x.moveTo(xx, y); }
+    x.stroke();
+  }
+  for (let i = 0; i < 6; i++) {                          // algumas "catedrais" do veio
+    const cx = rnd() * W, cy = rnd() * H, h = 120 + rnd() * 260;
+    x.strokeStyle = `rgba(${escuro},.18)`; x.lineWidth = 1.5;
+    for (let k = 0; k < 5; k++) { x.beginPath(); x.ellipse(cx, cy, 6 + k * 7, h * (0.4 + k * 0.15), 0, 0, Math.PI * 2); x.stroke(); }
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+function adicionarRipas(raiz) {
+  const Z = -3.5;                                        // face interior da parede da janela (eixos do glTF: y para cima)
+  const PASSO = 0.04, LARG = 0.026, FUNDO = 0.018;        // ripa de 26 mm com 14 mm de intervalo, 18 mm de relevo
+  const JAN = { x0: -1.0, x1: 1.0, y0: 1.0, y1: 2.15 };   // abertura da janela
+  const TETO = 2.7, PX0 = -1.7, PX1 = 1.7;
+  const grupo = new THREE.Group(); grupo.name = 'Ripas_Parede'; raiz.add(grupo);
+  // feltro preto por trás (só onde há parede)
+  const feltro = new THREE.MeshStandardMaterial({ color: 0x15110e, roughness: 0.97 });
+  const rects = [[PX0, JAN.x0, 0, TETO], [JAN.x1, PX1, 0, TETO], [JAN.x0, JAN.x1, 0, JAN.y0], [JAN.x0, JAN.x1, JAN.y1, TETO]];
+  for (const [a, b, c, d] of rects) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(b - a, d - c), feltro);
+    m.position.set((a + b) / 2, (c + d) / 2, Z + 0.002); grupo.add(m);
+  }
+  // ripas: colunas encaixadas em cada troço, para as arestas da janela caírem num intervalo
+  const colunas = [];
+  const troco = (a, b, segs) => {
+    const n = Math.floor((b - a + PASSO - LARG) / PASSO), sobra = (b - a) - ((n - 1) * PASSO + LARG);
+    for (let i = 0; i < n; i++) colunas.push([a + sobra / 2 + LARG / 2 + i * PASSO, segs]);
+  };
+  troco(PX0 + 0.004, JAN.x0, [[0, TETO]]);
+  troco(JAN.x1, PX1 - 0.004, [[0, TETO]]);
+  troco(JAN.x0, JAN.x1, [[0, JAN.y0], [JAN.y1, TETO]]);
+  const pecas = []; colunas.forEach(([cx, segs]) => segs.forEach(([y0, y1]) => pecas.push([cx, y0, y1])));
+  const tex = texturaNogueira();
+  const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.62, metalness: 0 });
+  const geo = new THREE.BoxGeometry(LARG, 1, FUNDO);
+  const ripas = new THREE.InstancedMesh(geo, mat, pecas.length);
+  const m4 = new THREE.Matrix4(), cor = new THREE.Color();
+  let sem = 11; const rnd = () => (sem = (sem * 16807) % 2147483647) / 2147483647;
+  pecas.forEach(([cx, y0, y1], i) => {
+    const h = y1 - y0 - 0.002;
+    m4.makeScale(1, h, 1).setPosition(cx, (y0 + y1) / 2, Z + FUNDO / 2 + 0.003);
+    ripas.setMatrixAt(i, m4);
+    const v = 0.86 + rnd() * 0.24; cor.setRGB(v, v * (0.97 + rnd() * 0.05), v * (0.93 + rnd() * 0.08));   // cada ripa com o seu tom
+    ripas.setColorAt(i, cor);
+  });
+  // a textura acompanha o comprimento de cada ripa (sem esticar o veio)
+  geo.attributes.uv.array.forEach((_, k, arr) => { if (k % 2) arr[k] *= 2.7; });
+  ripas.instanceMatrix.needsUpdate = true; if (ripas.instanceColor) ripas.instanceColor.needsUpdate = true;
+  grupo.add(ripas);
+}
+
 function prepararQuarto(raiz) {
   raiz.updateMatrixWorld(true);
+  raiz.traverse(o => {           // paredes e teto do quarto em greige quente (26/11), combinam com as ripas de nogueira
+    if (o.isMesh && (o.material.name === 'Parede' || o.material.name === 'Teto')) { o.material.color.setRGB(0.42, 0.38, 0.34); o.material.roughness = 0.9; }
+  });
   raiz.traverse(o => {           // candeeiro do corredor: brilho do difusor mais suave
     if (o.isMesh && o.material.name === 'Plafond_Difusor') o.material.emissiveIntensity *= 0.45;
   });
@@ -936,7 +1006,7 @@ async function iniciar() {
   });
   const tDown = performance.now() - t0;
   const gq = await parse(abQ);
-  prepararQuarto(gq.scene);
+  prepararQuarto(gq.scene); adicionarRipas(gq.scene);
   cenaQ.add(gq.scene); triQ = contarTri(gq.scene);
   renderer.compile(cenaQ, camera);
   quartoPronto = true;
