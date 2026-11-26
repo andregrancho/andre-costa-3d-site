@@ -1,6 +1,6 @@
 # André Costa · 3D personal website
 
-**Live site:** https://andre-costa-3d-site.vercel.app
+**Live site:** https://andregranchocosta.com
 
 My personal website, built as a walk through a 3D model of my own room. Scrolling moves the camera from object to object. Each stop tells one part of my story: surfing, music and art, basketball, my work at Stats Perform and Endiprev (remote commissioning of offshore wind farms with GE Haliade-X turbines), and what I'm learning in data and AI.
 
