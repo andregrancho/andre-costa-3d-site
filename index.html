@@ -39,12 +39,15 @@ canvas#c{position:fixed;inset:0;width:100vw;height:100vh;height:100lvh;display:b
 #intro.on{opacity:1;transform:none}
 #intro h1{margin:0 0 10px;font:700 clamp(38px,9vw,72px)/1.02 Inter,system-ui,sans-serif;letter-spacing:-.02em}
 #intro p{margin:0 0 8px;max-width:560px;font-size:clamp(15px,2.1vw,18px);line-height:1.5;color:#ece4ee}
-#intro .dica{margin-top:16px;font-size:13px;letter-spacing:.08em;color:rgba(255,255,255,.7);animation:dica 1.8s ease-in-out infinite}
+#intro .dica{margin-top:16px;font-size:13px;font-weight:600;letter-spacing:.08em;color:var(--acc);animation:dica 1.8s ease-in-out infinite}
 @keyframes dica{50%{transform:translateY(5px)}}
 @media (min-width:900px){#intro{padding:0 0 9vh 7vw;background:linear-gradient(to right,rgba(10,8,14,.75) 0%,rgba(10,8,14,.35) 40%,rgba(10,8,14,0) 65%);top:0;display:flex;flex-direction:column;justify-content:flex-end}}
 #cartao h2{margin:0 0 4px;font-size:19px;line-height:1.2}
 #cartao p{margin:0;color:var(--dim);font-size:14px;white-space:pre-line}
-#cartao{max-height:62vh;overflow:hidden}
+#cartao{max-height:62vh;overflow:hidden;display:flex;flex-direction:column}
+#cartao p{min-height:0;overflow:hidden}
+#cartao .seguir{flex:none;margin-top:12px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--acc);animation:dica 1.8s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){#intro .dica,#cartao .seguir{animation:none}}
 #cartao .meta{margin:0 0 10px;font-size:13px;font-weight:600;color:var(--acc)}
 @media (max-width:899px){#cartao{padding:12px 14px}#cartao h2{font-size:16.5px}#cartao p{font-size:13.5px;line-height:1.42}}
 #final{position:fixed;left:50%;bottom:max(28px,env(safe-area-inset-bottom));transform:translate(-50%,24px);width:min(560px,calc(100vw - 24px));background:rgba(22,17,30,.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.14);box-shadow:0 20px 60px rgba(0,0,0,.35);border-radius:18px;padding:22px 22px 16px;z-index:6;opacity:0;transition:opacity .9s,transform .9s;pointer-events:none;color:#fff}
@@ -148,7 +151,7 @@ html.ctAberto{overflow:hidden}
   </span>
 </div>
 
-<div id="cartao"><h2 id="cTit"></h2><div class="meta" id="cMeta"></div><p id="cTxt"></p></div>
+<div id="cartao"><h2 id="cTit"></h2><div class="meta" id="cMeta"></div><p id="cTxt"></p><div class="seguir" id="cSeguir" aria-hidden="true"></div></div>
 <div id="intro"><h1>Hi, I'm André.</h1>
 <p>Engineer from Aveiro, Portugal. I've built my career in real-time operations, from live sports data to remotely monitoring offshore wind turbines.</p>
 <p>Take a look around. Everything here says something about me.</p>
@@ -1207,7 +1210,11 @@ function ciclo(agora) {
       const [tit, ...meta] = (d[0] || '').split(' · ');          // "Cargo · Empresa · Local · Anos" -> título + linha pequena
       $('cTit').textContent = tit; $('cTit').style.display = tit ? '' : 'none';
       $('cMeta').textContent = meta.join(' · '); $('cMeta').style.display = meta.length ? '' : 'none';
-      $('cTxt').textContent = d[1]; $('cartao').classList.add('on');
+      const ultima = p === PARAGENS.length - 1;               // janela: o próprio aviso é o texto
+      $('cTxt').textContent = ultima ? '' : d[1]; $('cTxt').style.display = ultima ? 'none' : '';
+      $('cSeguir').textContent = ultima ? 'Keep scrolling to step outside ↓' : 'Scroll to continue ↓';
+      $('cSeguir').style.marginTop = ultima ? '0' : '';
+      $('cartao').classList.add('on');
     }
     else $('cartao').classList.remove('on');
   }
