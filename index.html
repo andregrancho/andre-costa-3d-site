@@ -1084,7 +1084,7 @@ document.querySelectorAll('.lnkCV').forEach(a => a.href = LIGACOES.cv);
 $('bLI').href = LIGACOES.linkedin;
 $('bCred').onclick = () => $('creditos').showModal();
 // ---------- painel de contacto ----------
-const WEB3FORMS_KEY = '';                       // chave do Web3Forms; vazia = o "Send" abre o programa de email
+const WEB3FORMS_KEY = '904a69b9-0ba8-4a66-8bec-c80b6288211f';                       // chave do Web3Forms; vazia = o "Send" abre o programa de email
 const ct = $('contacto'), ctP = $('ctPainel'), ctF = $('ctForm');
 $('ctLI').href = LIGACOES.linkedin;
 function abrirContacto() { ctP.classList.remove('feito'); $('ctAviso').textContent = ''; ct.showModal(); document.documentElement.classList.add('ctAberto'); setTimeout(() => $('ctNome').focus(), 60); }
