@@ -32,7 +32,7 @@ canvas#c{position:fixed;inset:0;width:100vw;height:100vh;height:100lvh;display:b
 #hud button{font:inherit;font-size:13px;color:var(--ink);background:#26232b;border:1px solid #3a3640;border-radius:8px;padding:8px 10px;min-height:36px}
 #hud .grp{display:flex;gap:6px;flex-wrap:wrap}
 #hud.min .info{display:none}
-#cartao{position:fixed;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));max-width:520px;margin:auto;background:rgba(18,16,22,.9);border:1px solid #34303a;border-radius:14px;padding:14px 16px;z-index:4;transform:translateY(20px);opacity:0;transition:opacity .35s,transform .35s;pointer-events:none}
+#cartao{position:fixed;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));max-width:540px;margin:auto;background:rgba(22,17,30,.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.14);box-shadow:0 20px 60px rgba(0,0,0,.35);border-radius:18px;padding:16px 20px;z-index:4;transform:translateY(20px);opacity:0;transition:opacity .35s,transform .35s;pointer-events:none}
 #cartao.on{opacity:1;transform:none}
 #intro{position:fixed;left:0;right:0;bottom:0;padding:28vh 24px max(28px,env(safe-area-inset-bottom));z-index:4;pointer-events:none;color:#fff;
   background:linear-gradient(to top,rgba(10,8,14,.82) 0%,rgba(10,8,14,.55) 45%,rgba(10,8,14,0) 100%);opacity:0;transform:translateY(16px);transition:opacity .8s,transform .8s}
@@ -45,14 +45,14 @@ canvas#c{position:fixed;inset:0;width:100vw;height:100vh;height:100lvh;display:b
 #cartao h2{margin:0 0 4px;font-size:19px;line-height:1.2}
 #cartao p{margin:0;color:var(--dim);font-size:14px;white-space:pre-line}
 #cartao{max-height:62vh;overflow:hidden}
-#cartao .meta{margin:0 0 8px;font-size:12.5px;letter-spacing:.02em;color:#c9b8d6}
+#cartao .meta{margin:0 0 10px;font-size:13px;font-weight:600;color:var(--acc)}
 @media (max-width:899px){#cartao{padding:12px 14px}#cartao h2{font-size:16.5px}#cartao p{font-size:13.5px;line-height:1.42}}
-#final{position:fixed;left:50%;bottom:max(28px,env(safe-area-inset-bottom));transform:translate(-50%,24px);width:min(560px,calc(100vw - 24px));background:rgba(20,16,26,.62);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:20px 22px;z-index:6;opacity:0;transition:opacity .9s,transform .9s;pointer-events:none;color:#fff}
+#final{position:fixed;left:50%;bottom:max(28px,env(safe-area-inset-bottom));transform:translate(-50%,24px);width:min(560px,calc(100vw - 24px));background:rgba(22,17,30,.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.14);box-shadow:0 20px 60px rgba(0,0,0,.35);border-radius:18px;padding:22px 22px 16px;z-index:6;opacity:0;transition:opacity .9s,transform .9s;pointer-events:none;color:#fff}
 
 #fixos{position:fixed;top:calc(12px + env(safe-area-inset-top));right:12px;display:flex;gap:8px;z-index:7}
 #fixos a{font:600 13px Inter,system-ui,sans-serif;text-decoration:none;border-radius:999px;padding:9px 14px;min-height:38px;display:inline-flex;align-items:center;gap:6px;backdrop-filter:blur(8px)}
-#fixos .cv{background:#fff;color:#1b1420}
-#fixos .ct{background:rgba(20,16,26,.55);color:#fff;border:1px solid rgba(255,255,255,.35)}
+#fixos .cv{background:rgba(20,16,26,.55);color:#fff;border:1px solid rgba(255,255,255,.14)}
+#fixos .ct{background:var(--acc);color:#1b1420}
 #final .cred{display:inline-block;margin-top:12px;font:12px Inter,system-ui,sans-serif;color:rgba(255,255,255,.6);background:none;border:0;padding:4px 0;cursor:pointer;text-decoration:underline;min-height:0}
 #creditos{max-width:min(520px,calc(100vw - 32px));border:1px solid #3a3640;border-radius:16px;background:#17141c;color:#e9e4ee;padding:20px 22px;font:14px/1.5 Inter,system-ui,sans-serif}
 #creditos::backdrop{background:rgba(0,0,0,.55);backdrop-filter:blur(3px)}
@@ -63,10 +63,50 @@ canvas#c{position:fixed;inset:0;width:100vw;height:100vh;height:100lvh;display:b
 #creditos button{font:600 14px Inter,system-ui,sans-serif;background:#fff;color:#1b1420;border:0;border-radius:10px;padding:10px 16px;min-height:44px}
 #final.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 #final h2{margin:0 0 6px;font-size:26px;line-height:1.1}
-#final p{margin:0 0 14px;color:#e8dfe6;font-size:15px}
+#final p{margin:8px 0 16px;color:#d9d0dc;font-size:15px}
 #final .bts{display:flex;flex-wrap:wrap;gap:8px}
-#final a{font:600 14px Inter,system-ui,sans-serif;color:#1b1420;background:#fff;border-radius:10px;padding:11px 14px;text-decoration:none;min-height:44px;display:inline-flex;align-items:center}
-#final a.sec{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5)}
+#final a{flex:1 1 130px;justify-content:center;white-space:nowrap;font:600 14px Inter,system-ui,sans-serif;color:#1b1420;background:var(--acc);border-radius:12px;padding:11px 14px;text-decoration:none;min-height:44px;display:inline-flex;align-items:center}
+#final a.sec{background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.14)}
+#final a.sec:hover{background:rgba(255,255,255,.12)}
+#fixos a:focus-visible,#final a:focus-visible,#contacto :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+/* painel de contacto */
+#contacto{border:0;padding:0;background:none;color:var(--ink);max-width:none;max-height:none;overflow:visible}
+#contacto::backdrop{background:rgba(8,6,12,.45);backdrop-filter:blur(4px)}
+#contacto .painel{width:min(480px,calc(100vw - 24px));background:rgba(22,17,30,.84);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.14);border-radius:20px;padding:24px 24px 20px;box-shadow:0 30px 80px rgba(0,0,0,.45);font-size:16px}
+#contacto[open] .painel{animation:ctEntra .35s ease-out}
+@keyframes ctEntra{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+#contacto .topo{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+#contacto h2{margin:0;font-size:26px;line-height:1.1;letter-spacing:-.01em}
+#contacto .sub{margin:6px 0 18px;color:#c9c0cc;font-size:15px}
+#contacto .fechar{flex:none;width:40px;height:40px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;font-size:20px;line-height:1;cursor:pointer}
+#contacto label{display:block;font-size:13px;font-weight:600;color:#c9c0cc;margin:0 0 6px}
+#contacto .campo{margin-bottom:12px}
+#contacto input,#contacto textarea{width:100%;font:16px/1.4 Inter,system-ui,sans-serif;color:#fff;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:12px 14px;min-height:46px}
+#contacto textarea{min-height:110px;resize:vertical}
+#contacto input::placeholder,#contacto textarea::placeholder{color:rgba(255,255,255,.4)}
+#contacto input:focus,#contacto textarea:focus{outline:none;border-color:var(--acc);background:rgba(255,255,255,.1)}
+#contacto .erro{display:none;margin:5px 0 0;font-size:13px;color:#ffb38a}
+#contacto .campo.mal .erro{display:block}#contacto .campo.mal input,#contacto .campo.mal textarea{border-color:var(--acc)}
+#contacto .hp{position:absolute;left:-9999px}
+#contacto .enviar{width:100%;margin-top:4px;font:700 15px Inter,system-ui,sans-serif;color:#1b1420;background:var(--acc);border:0;border-radius:12px;min-height:48px;cursor:pointer}
+#contacto .enviar:disabled{opacity:.6;cursor:default}
+#contacto .ou{display:flex;align-items:center;gap:10px;margin:18px 0 12px;color:rgba(255,255,255,.5);font-size:13px}
+#contacto .ou::before,#contacto .ou::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.14)}
+#contacto .atalhos{display:flex;flex-wrap:wrap;gap:8px}
+#contacto .atalhos a,#contacto .atalhos button{flex:1 1 120px;font:600 14px Inter,system-ui,sans-serif;color:#fff;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:12px;min-height:44px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;white-space:nowrap}
+#contacto .atalhos a:hover,#contacto .atalhos button:hover{background:rgba(255,255,255,.12)}
+#contacto .aviso{min-height:20px;margin:10px 0 0;font-size:13px;color:#c9c0cc}
+#contacto .ok{display:none;text-align:center;padding:18px 4px 6px}
+#contacto .ok .marca{width:56px;height:56px;margin:0 auto 14px;border-radius:999px;background:rgba(255,138,61,.16);border:1px solid rgba(255,138,61,.5);display:grid;place-items:center}
+#contacto .ok h3{margin:0 0 6px;font-size:22px}
+#contacto .ok p{margin:0 0 18px;color:#c9c0cc}
+#contacto .ok button{font:600 14px Inter,system-ui,sans-serif;color:#1b1420;background:#fff;border:0;border-radius:12px;min-height:44px;padding:0 18px;cursor:pointer}
+#contacto .painel.feito form,#contacto .painel.feito .ou,#contacto .painel.feito .atalhos,#contacto .painel.feito .aviso,#contacto .painel.feito .sub{display:none}
+#contacto .painel.feito .ok{display:block}
+@media(max-width:600px){#contacto{margin:auto 0 0;width:100%}#contacto .painel{width:100%;border-radius:20px 20px 0 0;border-bottom:0;padding:20px 18px calc(18px + env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto}#contacto h2{font-size:23px}#contacto[open] .painel{animation-name:ctSobe}}
+@keyframes ctSobe{from{transform:translateY(100%)}to{transform:none}}
+@media(prefers-reduced-motion:reduce){#contacto[open] .painel{animation:none}}
+html.ctAberto{overflow:hidden}
 #carregar{--p:0;position:fixed;inset:0;z-index:10;overflow:hidden;color:#f3e9f0;font-family:Inter,system-ui,sans-serif;
   background:linear-gradient(#10132e 0%,#1b2152 35%,#3d3378 55%,#8a4d8e 68%,#d9706f 76%,#f09a63 79%,#3a2a4a 79.2%,#151226 100%);transition:opacity 1.1s}
 #carregar.fim{opacity:0;pointer-events:none}
@@ -114,11 +154,28 @@ canvas#c{position:fixed;inset:0;width:100vw;height:100vh;height:100lvh;display:b
 <p>Take a look around. Everything here says something about me.</p>
 <div class="dica">SCROLL TO EXPLORE ↓</div></div>
 <div id="final"><h2>Open to new challenges.</h2><p>Every job so far has taught me something new, and I'm ready for the next one. If you think I could help your team, let's talk.</p>
-<div class="bts"><a href="#" id="bCV" class="lnkCV" download>Download CV</a><a href="#" id="bLI" class="sec" target="_blank" rel="noopener">LinkedIn</a><a href="#" id="bMail" class="sec">Email</a></div>
+<div class="bts"><a href="#" id="bCV" class="lnkCV" download>Download CV</a><a href="#" id="bLI" class="sec" target="_blank" rel="noopener">LinkedIn</a><a href="#" id="bMail" class="sec">Contact me</a></div>
 <button class="cred" id="bCred" type="button">Credits</button></div>
 
 <div id="fixos"><a href="#" class="cv lnkCV" download>CV ↓</a><a href="#" class="ct" id="bIr">Contact</a></div>
 
+<dialog id="contacto" aria-labelledby="ctTit">
+  <div class="painel" id="ctPainel">
+    <div class="topo"><h2 id="ctTit">Let's talk.</h2><button type="button" class="fechar" id="ctFechar" aria-label="Close">×</button></div>
+    <p class="sub">Send me a message and I'll reply within 24 hours.</p>
+    <form id="ctForm" novalidate>
+      <div class="campo" id="ctcNome"><label for="ctNome">Name</label><input id="ctNome" name="name" autocomplete="name" placeholder="Your name"><p class="erro">Please add your name.</p></div>
+      <div class="campo" id="ctcEmail"><label for="ctEmail">Email</label><input id="ctEmail" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@company.com"><p class="erro">Please add a valid email so I can reply.</p></div>
+      <div class="campo" id="ctcMsg"><label for="ctMsg">Message</label><textarea id="ctMsg" name="message" placeholder="Tell me about the role or project"></textarea><p class="erro">Please write a short message.</p></div>
+      <input type="checkbox" name="botcheck" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button class="enviar" id="ctEnviar" type="submit">Send message</button>
+    </form>
+    <div class="ou">or</div>
+    <div class="atalhos"><a href="#" id="ctLI" target="_blank" rel="noopener">LinkedIn ↗</a><button type="button" id="ctCopiar">Copy email</button><a href="#" class="lnkCV" download>Download CV</a></div>
+    <p class="aviso" id="ctAviso" role="status"></p>
+    <div class="ok" role="status"><div class="marca"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ff8a3d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><h3 id="ctOkTit">Message sent.</h3><p id="ctOkTxt">Thanks for reaching out. I'll get back to you soon.</p><button type="button" id="ctVoltar">Back to the room</button></div>
+  </div>
+</dialog>
 <dialog id="creditos">
   <h3>Credits</h3>
   <ul>
@@ -1025,15 +1082,50 @@ iniciar().catch(e => { $('erro').textContent = 'Erro: ' + e.message; console.err
 const LIGACOES = { cv: 'cv/Andre_Costa_CV.pdf', linkedin: 'https://www.linkedin.com/in/andr%C3%A9-grancho-costa-492470166/', email: 'andregcosta@ua.pt' };
 document.querySelectorAll('.lnkCV').forEach(a => a.href = LIGACOES.cv);
 $('bLI').href = LIGACOES.linkedin;
-$('bMail').href = 'mailto:' + LIGACOES.email;
 $('bCred').onclick = () => $('creditos').showModal();
-$('bIr').onclick = e => {                      // saltar o quarto e ir direto ao final
+// ---------- painel de contacto ----------
+const WEB3FORMS_KEY = '';                       // chave do Web3Forms; vazia = o "Send" abre o programa de email
+const ct = $('contacto'), ctP = $('ctPainel'), ctF = $('ctForm');
+$('ctLI').href = LIGACOES.linkedin;
+function abrirContacto() { ctP.classList.remove('feito'); $('ctAviso').textContent = ''; ct.showModal(); document.documentElement.classList.add('ctAberto'); setTimeout(() => $('ctNome').focus(), 60); }
+const fecharContacto = () => ct.close();
+ct.addEventListener('close', () => document.documentElement.classList.remove('ctAberto'));
+ct.addEventListener('click', e => { if (e.target === ct) fecharContacto(); });
+$('ctFechar').onclick = fecharContacto; $('ctVoltar').onclick = fecharContacto;
+$('bIr').onclick = e => { e.preventDefault(); abrirContacto(); };
+$('bMail').onclick = e => { e.preventDefault(); abrirContacto(); };
+['ctNome', 'ctEmail', 'ctMsg'].forEach(id => $(id).addEventListener('input', e => e.target.closest('.campo').classList.remove('mal')));
+function validarContacto() {
+  const regras = [['ctcNome', $('ctNome').value.trim().length > 1], ['ctcEmail', /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test($('ctEmail').value.trim())], ['ctcMsg', $('ctMsg').value.trim().length > 4]];
+  let primeiro = null;
+  regras.forEach(([id, ok]) => { $(id).classList.toggle('mal', !ok); if (!ok && !primeiro) primeiro = id; });
+  if (primeiro) $(primeiro).querySelector('input,textarea').focus();
+  return !primeiro;
+}
+function sucesso(tit, txt) { $('ctOkTit').textContent = tit; $('ctOkTxt').textContent = txt; ctP.classList.add('feito'); $('ctVoltar').focus(); }
+ctF.addEventListener('submit', async e => {
   e.preventDefault();
-  if (estado === 'barra') return;
-  if (barraPronta && quartoPronto) {
-    fSuave = FIM_Q;
-    scrollTo({ top: pxQ() + innerHeight * 0.2, behavior: 'instant' });
-  } else $('final').classList.add('on');      // vídeo ainda a carregar: mostra já os contactos
+  if (!validarContacto()) return;
+  const nome = $('ctNome').value.trim(), email = $('ctEmail').value.trim(), msg = $('ctMsg').value.trim();
+  if (!WEB3FORMS_KEY) {                          // sem serviço: abre o email da pessoa já preenchido
+    location.href = 'mailto:' + LIGACOES.email + '?subject=' + encodeURIComponent('Website contact from ' + nome) + '&body=' + encodeURIComponent(msg + '\n\n' + nome + ' · ' + email);
+    sucesso('Almost there.', 'Your email app should open with the message ready. Just press send.');
+    return;
+  }
+  const b = $('ctEnviar'); b.disabled = true; b.textContent = 'Sending…';
+  try {
+    const r = await fetch('https://api.web3forms.com/submit', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ access_key: WEB3FORMS_KEY, subject: 'Website contact from ' + nome, from_name: 'andregranchocosta.com', name: nome, email, message: msg, botcheck: ctF.botcheck.checked }) });
+    const j = await r.json();
+    if (!j.success) throw new Error(j.message || r.status);
+    ctF.reset(); sucesso('Message sent.', "Thanks for reaching out. I'll get back to you soon.");
+  } catch (err) {
+    $('ctAviso').textContent = "Sorry, the message didn't go through. Please try again or use LinkedIn.";
+  } finally { b.disabled = false; b.textContent = 'Send message'; }
+});
+$('ctCopiar').onclick = async () => {
+  try { await navigator.clipboard.writeText(LIGACOES.email); $('ctAviso').textContent = 'Email copied: ' + LIGACOES.email; }
+  catch { $('ctAviso').textContent = 'My email: ' + LIGACOES.email; }
 };
 // ---------- botões ----------
 $('bEnq').onclick = () => { modo = (modo + 1) % 3; $('bEnq').textContent = 'Enquadramento: ' + MODOS[modo]; ajustarCamara(); };
