@@ -1454,7 +1454,7 @@ function desenharBarra(dt) {
 iniciar().catch(e => { $('erro').textContent = 'Erro: ' + e.message; console.error(e); });
 
 // ---------- ligações (a preencher) e botões fixos ----------
-const LIGACOES = { cv: 'cv/Andre_Costa_CV.pdf', linkedin: 'https://www.linkedin.com/in/andr%C3%A9-grancho-costa-492470166/', email: 'andregcosta@ua.pt' };
+const LIGACOES = { cv: 'cv/Andre_Costa_CV.pdf?v=20261126', linkedin: 'https://www.linkedin.com/in/andr%C3%A9-grancho-costa-492470166/', email: 'andregcosta@ua.pt' };
 document.querySelectorAll('.lnkCV').forEach(a => a.href = LIGACOES.cv);
 $('bLI').href = LIGACOES.linkedin;
 $('bCred').onclick = () => $('creditos').showModal();
