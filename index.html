@@ -949,8 +949,27 @@ function adicionarPerifericos(raiz) {
   coluna(0.58, -0.18);
 }
 
+// ---------- ukulele: boca (buraco de som) com roseta, que o modelo não tinha (26/11) ----------
+function bocaUkulele(raiz) {
+  const uk = raiz.getObjectByName('ukulele_q'); if (!uk) return;
+  const T = 512, c = document.createElement('canvas'); c.width = c.height = T;
+  const x = c.getContext('2d'), m = T / 2, R = T / 2;          // eixos locais do modelo: y ao comprido, +z para a frente
+  const aneis = [[1.0, '#3b2414'], [0.93, '#c9a777'], [0.90, '#2a170c'], [0.87, '#d8b98a'], [0.84, '#2a170c'], [0.81, '#3b2414']];
+  aneis.forEach(([k, cor]) => { x.fillStyle = cor; x.beginPath(); x.arc(m, m, R * k, 0, 7); x.fill(); });
+  const g = x.createRadialGradient(m, m * 0.96, 0, m, m, R * 0.76);   // interior: escuro, com a parede de madeira a ver-se na borda
+  g.addColorStop(0, '#060403'); g.addColorStop(0.72, '#0d0806'); g.addColorStop(0.92, '#2a170d'); g.addColorStop(1, '#4a2c18');
+  x.fillStyle = g; x.beginPath(); x.arc(m, m, R * 0.76, 0, 7); x.fill();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+  const mat = new THREE.MeshStandardMaterial({ map: t, roughness: 0.75, transparent: true, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
+  const RAIO = 0.125;                                          // unidades do modelo (≈ 2,8 cm com a roseta)
+  const boca = new THREE.Mesh(new THREE.CircleGeometry(RAIO, 64), mat);
+  boca.position.set(0, -0.30, 0.1132);
+  uk.add(boca);
+}
+
 function prepararQuarto(raiz) {
   raiz.updateMatrixWorld(true);
+  bocaUkulele(raiz);
   raiz.traverse(o => {           // paredes e teto do quarto em greige quente (26/11), combinam com as ripas de nogueira
     if (o.isMesh && (o.material.name === 'Parede' || o.material.name === 'Teto')) { o.material.color.setRGB(0.42, 0.38, 0.34); o.material.roughness = 0.9; }
   });
