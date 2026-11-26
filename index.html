@@ -1408,6 +1408,16 @@ function videoArrancar() {
   if (Math.abs(vooEl.currentTime - INICIO_VIDEO) > 0.05) vooEl.currentTime = INICIO_VIDEO;
   vooEl.play().catch(() => {});
 }
+// iPhone: à 2.ª passagem o vídeo podia não voltar a mostrar frames (fica o céu parado). Recria o elemento
+// a partir do mesmo ficheiro já descarregado (blob), sem voltar a descarregar nada.
+let recriado = false;
+function recriarVoo() {
+  const velho = vooEl, src = velho.src;
+  velho.pause();
+  vooEl = document.createElement('video');
+  vooEl.muted = true; vooEl.playsInline = true; vooEl.setAttribute('playsinline', ''); vooEl.preload = 'auto'; vooEl.src = src;
+  const u = quadV.material.uniforms; const tv = u.tVoo.value; u.tVoo.value = texVideo(vooEl); if (tv) tv.dispose();
+}
 const DUR_SAIDA = 2.2, DUR_VOLTA_FADE = 0.5, DUR_VOLTA = 1.8;
 const suave = x => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
 function mudar(e) { estado = e; tEstado = performance.now(); }
@@ -1504,12 +1514,17 @@ function ciclo(agora) {
       mudar('barra'); finalMostrado = false;
       u.uLoop.value = 0; u.uFade.value = 0;
       cicloEl.pause(); cicloEl.currentTime = 0;
+      recriado = false;
       videoArrancar();
     }
   } else if (estado === 'barra') {
     if (!videoVisivel) {
       const semRVFC = !vooEl.requestVideoFrameCallback;
       if (framesNovos >= 2 || (semRVFC && !vooEl.seeking && vooEl.currentTime > INICIO_VIDEO + 0.1)) videoVisivel = true;
+      // salvaguardas (sobretudo iPhone): o vídeo está mesmo a andar -> mostra; parado -> volta a dar play; ao fim de 1,5 s sem nada -> recria
+      else if (!vooEl.seeking && !vooEl.paused && vooEl.currentTime > INICIO_VIDEO + 0.35) videoVisivel = true;
+      else if (tE > 0.6 && vooEl.paused && !vooEl.ended) vooEl.play().catch(() => {});
+      if (!videoVisivel && tE > 1.5 && !recriado) { recriado = true; recriarVoo(); videoArrancar(); }
     }
     if (!finalMostrado && tE > FINAL_APOS) { finalMostrado = true; $('final').classList.add('on'); }
     if (scrollY < pxQ() + innerHeight * 0.02) { mudar('volta'); $('final').classList.remove('on'); }
